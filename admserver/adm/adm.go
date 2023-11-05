@@ -1,7 +1,7 @@
 package adm
 
 import (
-	"errors"
+	"fmt"
 	"github.com/GabiHert/t2-fppd/admserver/account"
 	"github.com/GabiHert/t2-fppd/commom"
 	"github.com/google/uuid"
@@ -18,6 +18,7 @@ func (a *Adm) validateToken(token string) bool {
 
 func (a *Adm) finishSession(token string) {
 	a.sessions[token] = false
+	fmt.Printf("Adm: Session finished: %s\n", token)
 }
 
 func (a *Adm) getAccount(name string, psw int) (int, *account.Account) {
@@ -30,11 +31,14 @@ func (a *Adm) getAccount(name string, psw int) (int, *account.Account) {
 	return 0, nil
 }
 
-func (a *Adm) Auth(req *commom.AuthReq, _ *struct{}) error {
-
+func (a *Adm) Auth(req *commom.AuthReq, res *commom.Res) error {
+	if err := commom.Fail(); err != nil {
+		return err
+	}
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
-		return errors.New("account not found")
+		res.Err = &commom.Error{Message: "account not found"}
+		return nil
 	}
 
 	return nil
@@ -46,20 +50,28 @@ func (a *Adm) InitSession(_ *struct{}, res *string) error {
 
 	a.sessions[token] = true
 
-	res = &token
+	*res = token
+	fmt.Printf("Adm: Session started: %s\n", token)
+
 	return nil
 }
 
-func (a *Adm) CreateAccount(req *commom.Req, _ *struct{}) error {
-	if a.validateToken(req.Token) {
-		return errors.New("invalid token")
+func (a *Adm) CreateAccount(req *commom.Req, res *commom.Res) error {
+	if err := commom.Fail(); err != nil {
+		return err
+	}
+
+	if !a.validateToken(req.Token) {
+		res.Err = &commom.Error{Message: "invalid token"}
+		return nil
 	}
 
 	defer a.finishSession(req.Token)
 
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac != nil {
-		return errors.New("acount already exists")
+		res.Err = &commom.Error{Message: "account already exists"}
+		return nil
 	}
 
 	a.accounts = append(a.accounts, &account.Account{
@@ -68,16 +80,18 @@ func (a *Adm) CreateAccount(req *commom.Req, _ *struct{}) error {
 	return nil
 }
 
-func (a *Adm) DeleteAccount(req *commom.Req, _ *struct{}) error {
-	if a.validateToken(req.Token) {
-		return errors.New("invalid token")
+func (a *Adm) DeleteAccount(req *commom.Req, res *commom.Res) error {
+	if !a.validateToken(req.Token) {
+		res.Err = &commom.Error{Message: "invalid token"}
+		return nil
 	}
 
 	defer a.finishSession(req.Token)
 
 	i, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
-		return errors.New("account not found")
+		res.Err = &commom.Error{Message: "account not found"}
+		return nil
 	}
 
 	a.accounts = append(a.accounts[:i], a.accounts[i+1:]...)
@@ -85,47 +99,66 @@ func (a *Adm) DeleteAccount(req *commom.Req, _ *struct{}) error {
 	return nil
 }
 
-func (a *Adm) GetBalance(req *commom.Req, res *float32) error {
-	if a.validateToken(req.Token) {
-		return errors.New("invalid token")
+func (a *Adm) GetBalance(req *commom.Req, res *commom.GetBalanceRes) error {
+	if err := commom.Fail(); err != nil {
+		return err
+	}
+
+	if !a.validateToken(req.Token) {
+		res.Err = &commom.Error{Message: "invalid token"}
+		return nil
 	}
 
 	defer a.finishSession(req.Token)
 
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
-		return errors.New("account not found")
+		res.Err = &commom.Error{Message: "account not found"}
+		return nil
 	}
 
-	*res = ac.Balance
+	res.Balance = ac.Balance
 
 	return nil
 }
 
-func (a *Adm) Withdraw(req *commom.OperationReq, _ *struct{}) error {
-	if a.validateToken(req.Token) {
-		return errors.New("invalid token")
+func (a *Adm) Withdraw(req *commom.OperationReq, res *commom.Res) error {
+	if err := commom.Fail(); err != nil {
+		return err
+	}
+
+	if !a.validateToken(req.Token) {
+		res.Err = &commom.Error{Message: "invalid token"}
+		return nil
 	}
 
 	defer a.finishSession(req.Token)
 
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
-		return errors.New("account not found")
+		res.Err = &commom.Error{Message: "account not found"}
+		return nil
 	}
-	return ac.Withdraw(req.Amount)
+	res.Err = ac.Withdraw(req.Amount)
+	return nil
 }
 
-func (a *Adm) Deposit(req *commom.OperationReq, _ *struct{}) error {
-	if a.validateToken(req.Token) {
-		return errors.New("invalid token")
+func (a *Adm) Deposit(req *commom.OperationReq, res *commom.Res) error {
+	if err := commom.Fail(); err != nil {
+		return err
+	}
+
+	if !a.validateToken(req.Token) {
+		res.Err = &commom.Error{Message: "invalid token"}
+		return nil
 	}
 
 	defer a.finishSession(req.Token)
 
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
-		return errors.New("account not found")
+		res.Err = &commom.Error{Message: "account not found"}
+		return nil
 	}
 
 	ac.Deposit(req.Amount)

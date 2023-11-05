@@ -1,6 +1,8 @@
 package account
 
-import "errors"
+import (
+	"github.com/GabiHert/t2-fppd/commom"
+)
 
 type Account struct {
 	Name    string
@@ -8,9 +10,9 @@ type Account struct {
 	Psw     int
 }
 
-func (a *Account) Withdraw(amount float32) error {
+func (a *Account) Withdraw(amount float32) *commom.Error {
 	if a.Balance < amount {
-		return errors.New("insufficient funds")
+		return &commom.Error{Message: "insufficient funds"}
 	}
 
 	a.Balance -= amount

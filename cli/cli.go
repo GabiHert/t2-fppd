@@ -18,16 +18,19 @@ type Cli struct {
 func (c *Cli) Run() {
 	selectPrompt := promptui.Select{
 		Label: "Select your operator",
-		Items: []string{"cash-machine", "agency"},
+		Items: []string{"Cash Machine", "Agency", "Abort"},
 	}
 
 	_, result, _ := selectPrompt.Run()
-	c.isAgency = result == "agency"
+	c.isAgency = result == "Agency"
 
 	var actions []string
 	if c.isAgency {
 		actions = []string{"Auth", "Withdraw", "Deposit",
 			"Create account", "Delete account", "Get balance", "Cancel", "Abort"}
+	} else if result == "Abort" {
+		c.stop <- true
+		return
 	} else {
 		actions = []string{"Auth", "Withdraw", "Deposit",
 			"Get balance", "Cancel", "Abort"}
@@ -55,6 +58,7 @@ func (c *Cli) Run() {
 		return
 	case "Abort":
 		c.stop <- true
+		return
 	}
 
 }
@@ -79,17 +83,14 @@ func (c *Cli) auth() {
 	if c.isAgency {
 		err := c.agency.Auth(name, psw)
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	} else {
 		err := c.cashMachine.Auth(name, psw)
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	}
-	fmt.Println("Auth successful")
 }
 func (c *Cli) withdraw() {
 	name, psw := getNameAndPassword()
@@ -101,18 +102,14 @@ func (c *Cli) withdraw() {
 	if c.isAgency {
 		err := c.agency.Withdraw(name, psw, float32(amount))
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	} else {
 		err := c.cashMachine.Withdraw(name, psw, float32(amount))
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	}
-	fmt.Println("Withdraw successful")
-
 }
 func (c *Cli) deposit() {
 	name, psw := getNameAndPassword()
@@ -124,36 +121,28 @@ func (c *Cli) deposit() {
 	if c.isAgency {
 		err := c.agency.Deposit(name, psw, float32(amount))
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	} else {
 		err := c.cashMachine.Deposit(name, psw, float32(amount))
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	}
-	fmt.Println("Deposit successful")
 }
 func (c *Cli) createAccount() {
 	name, psw := getNameAndPassword()
 	err := c.agency.CreateAccount(name, psw)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("Account created successfully")
-
 }
 func (c *Cli) deleteAccount() {
 	name, psw := getNameAndPassword()
 	err := c.agency.DeleteAccount(name, psw)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("Account deleted successfully")
 
 }
 
@@ -166,13 +155,11 @@ func (c *Cli) getBalance() {
 	if c.isAgency {
 		balance, err = c.agency.GetBalance(name, psw)
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	} else {
 		balance, err = c.cashMachine.GetBalance(name, psw)
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 	}

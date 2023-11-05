@@ -1,6 +1,7 @@
 package rpcservice
 
 import (
+	"fmt"
 	"github.com/GabiHert/t2-fppd/commom"
 	"net/rpc"
 )
@@ -24,10 +25,16 @@ func (a *Adm) Auth(name string, psw int) error {
 		Name: name,
 		Psw:  psw,
 	}
+	var res commom.Res
 
-	err := a.client.Call("Adm.Auth", &req, &struct{}{})
-	if err != nil {
-		return err
+	errCall := a.client.Call("Adm.Auth", &req, &res)
+	if errCall != nil {
+		return errCall
+	}
+
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return nil
 	}
 
 	return nil
@@ -40,9 +47,16 @@ func (a *Adm) CreateAccount(name string, psw int, token string) error {
 		Token: token,
 	}
 
-	err := a.client.Call("Adm.CreateAccount", &req, &struct{}{})
-	if err != nil {
-		return err
+	var res commom.Res
+
+	errCall := a.client.Call("Adm.CreateAccount", &req, &res)
+	if errCall != nil {
+		return errCall
+	}
+
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return nil
 	}
 
 	return nil
@@ -56,11 +70,17 @@ func (a *Adm) DeleteAccount(name string, psw int, token string) error {
 		Token: token,
 	}
 
-	err := a.client.Call("Adm.DeleteAccount", &req, &struct{}{})
-	if err != nil {
-		return err
+	var res commom.Res
+
+	errCall := a.client.Call("Adm.DeleteAccount", &req, &res)
+	if errCall != nil {
+		return errCall
 	}
 
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return nil
+	}
 	return nil
 }
 
@@ -71,14 +91,19 @@ func (a *Adm) GetBalance(name string, psw int, token string) (float32, error) {
 		Psw:   psw,
 		Token: token,
 	}
-	var balance float32
+	var res commom.GetBalanceRes
 
-	err := a.client.Call("Adm.GetBalance", &req, &balance)
+	err := a.client.Call("Adm.GetBalance", &req, &res)
 	if err != nil {
 		return 0, err
 	}
 
-	return balance, nil
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return 0, nil
+	}
+
+	return res.Balance, nil
 }
 
 func (a *Adm) Deposit(name string, psw int, amount float32, token string) error {
@@ -92,11 +117,16 @@ func (a *Adm) Deposit(name string, psw int, amount float32, token string) error 
 		Amount: amount,
 	}
 
-	err := a.client.Call("Adm.Deposit", &req, &struct{}{})
-	if err != nil {
-		return err
+	var res commom.Res
+	errCall := a.client.Call("Adm.Deposit", &req, &res)
+	if errCall != nil {
+		return errCall
 	}
 
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return nil
+	}
 	return nil
 }
 
@@ -111,11 +141,16 @@ func (a *Adm) Withdraw(name string, psw int, amount float32, token string) error
 		Amount: amount,
 	}
 
-	err := a.client.Call("Adm.Withdraw", &req, &struct{}{})
-	if err != nil {
-		return err
+	var res commom.Res
+	errCall := a.client.Call("Adm.Withdraw", &req, &res)
+	if errCall != nil {
+		return errCall
 	}
 
+	if res.Err != nil {
+		fmt.Println(res.Err.Error())
+		return nil
+	}
 	return nil
 }
 

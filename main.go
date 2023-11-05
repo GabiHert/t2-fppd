@@ -4,53 +4,45 @@ import (
 	"fmt"
 	"github.com/GabiHert/t2-fppd/admserver"
 	"github.com/GabiHert/t2-fppd/agencyclient"
-	"github.com/GabiHert/t2-fppd/commom/config"
-	"sync"
+	"github.com/GabiHert/t2-fppd/cli"
+	"github.com/GabiHert/t2-fppd/commom"
+	"github.com/GabiHert/t2-fppd/machineclient"
 )
 
 func main() {
 
 	var (
-		wg      sync.WaitGroup
-		errChan = make(chan error)
+		stop = make(chan bool)
 	)
 
-	wg.Add(3)
-
 	go func() {
-		defer wg.Done()
 		err := admserver.Serve()
 		if err != nil {
-			errChan <- err
+			fmt.Println(err.Error())
+			stop <- true
 		}
 	}()
 
 	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case err := <-errChan:
-				fmt.Println(err.Error())
-				return
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		agencyAdmClient, err := config.NewRpcClient("8080")
+		agencyAdmClient, err := commom.NewRpcClient("8080")
 		if err != nil {
-			panic(err)
+			fmt.Println(err.Error())
+			stop <- true
 		}
-
+		cashMachineAdmClient, err := commom.NewRpcClient("8080")
+		if err != nil {
+			fmt.Println(err.Error())
+			stop <- true
+		}
 		agency := agencyclient.NewAgency(agencyAdmClient)
+		cashMachine := machineclient.NewCashMachine(cashMachineAdmClient)
 
-		err = agency.Auth("teste", 123)
-		if err != nil {
-			errChan <- err
+		for {
+			cli.NewCli(agency, cashMachine, stop).Run()
 		}
+
 	}()
 
-	wg.Wait()
+	<-stop
 
 }

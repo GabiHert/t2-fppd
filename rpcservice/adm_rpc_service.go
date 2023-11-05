@@ -1,7 +1,7 @@
 package rpcservice
 
 import (
-	"github.com/GabiHert/t2-fppd/commom/types"
+	"github.com/GabiHert/t2-fppd/commom"
 	"net/rpc"
 )
 
@@ -20,7 +20,7 @@ func (a *Adm) InitSession() (string, error) {
 }
 
 func (a *Adm) Auth(name string, psw int) error {
-	req := types.AuthReq{
+	req := commom.AuthReq{
 		Name: name,
 		Psw:  psw,
 	}
@@ -34,7 +34,7 @@ func (a *Adm) Auth(name string, psw int) error {
 }
 
 func (a *Adm) CreateAccount(name string, psw int, token string) error {
-	req := types.Req{
+	req := commom.Req{
 		Name:  name,
 		Psw:   psw,
 		Token: token,
@@ -50,7 +50,7 @@ func (a *Adm) CreateAccount(name string, psw int, token string) error {
 
 func (a *Adm) DeleteAccount(name string, psw int, token string) error {
 
-	req := types.Req{
+	req := commom.Req{
 		Name:  name,
 		Psw:   psw,
 		Token: token,
@@ -66,7 +66,7 @@ func (a *Adm) DeleteAccount(name string, psw int, token string) error {
 
 func (a *Adm) GetBalance(name string, psw int, token string) (float32, error) {
 
-	req := types.Req{
+	req := commom.Req{
 		Name:  name,
 		Psw:   psw,
 		Token: token,
@@ -83,8 +83,8 @@ func (a *Adm) GetBalance(name string, psw int, token string) (float32, error) {
 
 func (a *Adm) Deposit(name string, psw int, amount float32, token string) error {
 
-	req := types.OperationReq{
-		Req: types.Req{
+	req := commom.OperationReq{
+		Req: commom.Req{
 			Name:  name,
 			Psw:   psw,
 			Token: token,
@@ -102,8 +102,8 @@ func (a *Adm) Deposit(name string, psw int, amount float32, token string) error 
 
 func (a *Adm) Withdraw(name string, psw int, amount float32, token string) error {
 
-	req := types.OperationReq{
-		Req: types.Req{
+	req := commom.OperationReq{
+		Req: commom.Req{
 			Name:  name,
 			Psw:   psw,
 			Token: token,

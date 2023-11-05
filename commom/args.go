@@ -1,4 +1,4 @@
-package types
+package commom
 
 type Req struct {
 	Name  string

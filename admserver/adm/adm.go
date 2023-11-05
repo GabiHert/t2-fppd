@@ -3,7 +3,7 @@ package adm
 import (
 	"errors"
 	"github.com/GabiHert/t2-fppd/admserver/account"
-	"github.com/GabiHert/t2-fppd/commom/types"
+	"github.com/GabiHert/t2-fppd/commom"
 	"github.com/google/uuid"
 )
 
@@ -30,7 +30,7 @@ func (a *Adm) getAccount(name string, psw int) (int, *account.Account) {
 	return 0, nil
 }
 
-func (a *Adm) Auth(req *types.AuthReq, _ *struct{}) error {
+func (a *Adm) Auth(req *commom.AuthReq, _ *struct{}) error {
 
 	_, ac := a.getAccount(req.Name, req.Psw)
 	if ac == nil {
@@ -50,7 +50,7 @@ func (a *Adm) InitSession(_ *struct{}, res *string) error {
 	return nil
 }
 
-func (a *Adm) CreateAccount(req *types.Req, _ *struct{}) error {
+func (a *Adm) CreateAccount(req *commom.Req, _ *struct{}) error {
 	if a.validateToken(req.Token) {
 		return errors.New("invalid token")
 	}
@@ -68,7 +68,7 @@ func (a *Adm) CreateAccount(req *types.Req, _ *struct{}) error {
 	return nil
 }
 
-func (a *Adm) DeleteAccount(req *types.Req, _ *struct{}) error {
+func (a *Adm) DeleteAccount(req *commom.Req, _ *struct{}) error {
 	if a.validateToken(req.Token) {
 		return errors.New("invalid token")
 	}
@@ -85,7 +85,7 @@ func (a *Adm) DeleteAccount(req *types.Req, _ *struct{}) error {
 	return nil
 }
 
-func (a *Adm) GetBalance(req *types.Req, res *float32) error {
+func (a *Adm) GetBalance(req *commom.Req, res *float32) error {
 	if a.validateToken(req.Token) {
 		return errors.New("invalid token")
 	}
@@ -97,12 +97,12 @@ func (a *Adm) GetBalance(req *types.Req, res *float32) error {
 		return errors.New("account not found")
 	}
 
-	res = &ac.Balance
+	*res = ac.Balance
 
 	return nil
 }
 
-func (a *Adm) Withdraw(req *types.OperationReq, _ *struct{}) error {
+func (a *Adm) Withdraw(req *commom.OperationReq, _ *struct{}) error {
 	if a.validateToken(req.Token) {
 		return errors.New("invalid token")
 	}
@@ -116,7 +116,7 @@ func (a *Adm) Withdraw(req *types.OperationReq, _ *struct{}) error {
 	return ac.Withdraw(req.Amount)
 }
 
-func (a *Adm) Deposit(req *types.OperationReq, _ *struct{}) error {
+func (a *Adm) Deposit(req *commom.OperationReq, _ *struct{}) error {
 	if a.validateToken(req.Token) {
 		return errors.New("invalid token")
 	}

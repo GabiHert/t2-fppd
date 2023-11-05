@@ -1,4 +1,4 @@
-package config
+package commom
 
 import (
 	"net/rpc"
